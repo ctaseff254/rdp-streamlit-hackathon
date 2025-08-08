@@ -47,6 +47,7 @@ def main():
             random_index = random_row.index[0]
             data.dock_status.loc[random_index, 'Days of Service'] = random.randint(1, 20)
             data.dock_status.loc[random_index, 'Last Refresh'] = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+            data.dock_status['Dock Aging Hours'] = [int((datetime.now() - time_created).total_seconds() // 3600) for time_created in data.dock_status['Time Created']]
 
             # Apply conditional formatting
             flagged_skus_df = data.dock_status.style.apply(flag_hot_sku, axis=1)   
