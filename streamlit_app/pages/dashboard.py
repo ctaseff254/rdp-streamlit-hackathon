@@ -163,6 +163,6 @@ def main():
                     flagged_skus_df = filtered_df.style.apply(flag_hot_sku, axis=1)
                     st.dataframe(flagged_skus_df)
 
-                time.sleep(2)
+                time.sleep(5)
 
 main()
