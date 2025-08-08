@@ -167,3 +167,4 @@ local-uvicorn_conf.yaml
 scrap*
 *.config
 *.toml
+logging.config
