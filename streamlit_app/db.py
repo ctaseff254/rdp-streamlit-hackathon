@@ -58,7 +58,13 @@ def get_all_data():
     """
     conn_ref, cursor = connect_to_db()
     
-    alerts_df = pd.read_sql_query('SELECT * FROM alerts;', conn_ref)
+    alerts_df = pd.read_sql_query("""SELECT 
+                                  s.product_number,
+                                  s.product_name,
+                                  a.alert_type,
+                                  a.alert_message,
+                                  a.timestamp
+                                  FROM alerts as a INNER JOIN skus as s ON a.sku_id = s.sku_id;""", conn_ref)
 
     skus_df = pd.read_sql('SELECT * FROM skus WHERE sku_id IN (SELECT sku_id FROM alerts);', conn_ref)
     
