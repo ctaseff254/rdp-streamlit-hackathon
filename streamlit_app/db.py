@@ -58,7 +58,9 @@ def get_all_data():
     """
     conn_ref, cursor = connect_to_db()
     
-    alerts_df = pd.read_sql_query("""SELECT 
+    alerts_df = pd.read_sql_query("""SELECT
+                                  a.alert_id,
+                                  s.sku_id, 
                                   s.product_number,
                                   s.product_name,
                                   a.alert_type,
@@ -69,7 +71,9 @@ def get_all_data():
     skus_df = pd.read_sql('SELECT * FROM skus WHERE sku_id IN (SELECT sku_id FROM alerts);', conn_ref)
     
     dock_status_df = pd.read_sql("""
-        SELECT 
+        SELECT
+            s.sku_id,
+            d.dock_id, 
             s.product_number, 
             s.product_name,
             d.staging_lane, 
