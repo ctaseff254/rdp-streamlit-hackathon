@@ -141,7 +141,7 @@ def main():
                 # Apply conditional formatting
                 flagged_skus_df = data.dock_status.style.apply(flag_hot_sku, axis=1)
 
-                col1, col2, col3 = st.columns(3)
+                col1, col2 = st.columns([1,3])
 
                 with col1:
                     st.markdown('### Alerts')
@@ -162,10 +162,6 @@ def main():
 
                     flagged_skus_df = filtered_df.style.apply(flag_hot_sku, axis=1)
                     st.dataframe(flagged_skus_df)
-
-                with col3:
-                    st.markdown('### Production Pipeline')
-                    st.dataframe(data.production_pipeline)
 
                 time.sleep(2)
 
