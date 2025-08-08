@@ -12,12 +12,6 @@ from components.DOS_bar_chart import fetch_DOS_count
 from components.PP_pie_chart import production_pipeline_pie_chart_altair
 from db import get_all_data, WarehouseData
 
-def make_autopct(values):
-    def my_autopct(pct):
-        total = sum(values)
-        val = int(round(pct*total/100.0))
-        return f'{val}'
-    return my_autopct
 def main():
     """
     Launches a real-time Streamlit dashboard for monitoring dock status and SKU alerts.
