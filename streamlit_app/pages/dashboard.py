@@ -33,7 +33,7 @@ def real_time_update(warehouse_data: WarehouseData):
                                        'Low days of service', 
                                        warehouse_data)
         
-    warehouse_data.dock_status.loc[random_index, 'Days of Service'] = current_random_row['Days of Service'] - 1 if current_random_row['Days of Service'] > 1 else 50
+    warehouse_data.dock_status.loc[random_index, 'Days of Service'] = current_random_row['Days of Service'] - 1 if current_random_row['Days of Service'] > 1 else 20
     warehouse_data.dock_status.loc[random_index, 'Last Refresh'] = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
     warehouse_data.dock_status['Dock Aging Hours'] = [int((datetime.now() - time_created).total_seconds() // 3600) for time_created in warehouse_data.dock_status['Time Created']]
     return warehouse_data
@@ -179,7 +179,8 @@ def main():
                     # Apply conditional formatting to filtered dock status
                     flagged_skus_df = filtered_df.style.apply(flag_hot_sku, axis=1)
                     st.dataframe(flagged_skus_df)
+
                 # Loop every 2 seconds to simulate real-time dashboard
-                time.sleep(2)
+                time.sleep(5)
 
 main()
