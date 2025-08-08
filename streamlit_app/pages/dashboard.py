@@ -66,7 +66,7 @@ def main():
             if not hidden:
                 pie, bar = st.columns(2)
                 with bar:
-                    DOS_count_df =  fetch_DOS_count(data.dock_status)
+                    DOS_count_df = fetch_DOS_count(data.dock_status)
 
                     # Display dashboard sections
                     st.markdown('### Urgent Items')
@@ -82,22 +82,20 @@ def main():
             data.dock_status.loc[random_index, 'Days of Service'] = current_days_of_service - 1 if current_days_of_service > 1 else 99
             data.dock_status.loc[random_index, 'Last Refresh'] = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
 
-            # Apply conditional formatting
-            flagged_skus_df = data.dock_status.style.apply(flag_hot_sku, axis=1)
-
-            col1, col2, col3 = st.columns(3)
+            col1, col2 = st.columns([1, 3])
+        
             # Display dashboard sections
             with col1:
-                st.markdown('### Alerts')
+                st.markdown('### 🔔 Alerts')
                 st.dataframe(data.alerts)
             with col2:
-                st.markdown('### Dock Status')                
+                st.markdown('### 📤 SKU Status')                
                 # Apply conditional formatting
                 
                 filtered_df = data.dock_status
                 
                 if destination_filter != 'All':
-                    filtered_df = filtered_df[data.dock_status['Destination'] == destination_filter]
+                    filtered_df = filtered_df[filtered_df['Destination'] == destination_filter]
                 if dock_filter != 'All':
                     filtered_df = filtered_df[filtered_df['Dock Location'] == dock_filter]
                     
@@ -108,9 +106,6 @@ def main():
 
                 flagged_skus_df = filtered_df.style.apply(flag_hot_sku, axis=1)   
                 st.dataframe(flagged_skus_df)
-            with col3:
-                st.markdown('### Production Pipeline')
-                st.dataframe(data.production_pipeline)
 
             time.sleep(2)
 

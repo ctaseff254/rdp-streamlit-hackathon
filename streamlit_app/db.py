@@ -64,7 +64,9 @@ def get_all_data():
         SELECT 
             s.product_number, 
             s.product_name,
-            d.staging_lane, 
+            d.staging_lane,
+            p.status,
+            p.estimated_completion, 
             d.dock_location, 
             d.last_refresh, 
             d.days_of_service,
@@ -74,6 +76,7 @@ def get_all_data():
             s.weight_lbs 
         FROM dock_status AS d
         INNER JOIN skus AS s ON d.sku_id = s.sku_id
+        INNER JOIN production_pipeline as p on s.sku_id = p.sku_id
     """, conn_ref)
 
     dock_status_df['last_refresh'] = pd.to_datetime(dock_status_df['last_refresh'], format='%Y-%m-%d %H:%M:%S')
@@ -83,6 +86,8 @@ def get_all_data():
         'staging_lane': 'Staging Lane', 
         'dock_location': 'Dock Location', 
         'last_refresh': 'Last Refresh',
+        'status': 'Status',
+        'estimated_completion': 'Estimated Completion',
         'product_name': 'Product Name',
         'product_number': 'Product Number',
         'days_of_service': 'Days of Service',
