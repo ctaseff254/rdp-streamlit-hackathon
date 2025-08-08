@@ -10,9 +10,33 @@ import numpy as np
 
 from pages.alerts import flag_hot_sku
 from streamlit_extras.stylable_container import stylable_container
+import altair as alt
+from pages.alerts import flag_hot_sku, alert_severity_map, add_new_alert # 2nd import is temporary
 from components.DOS_bar_chart import fetch_DOS_count
 from components.PP_pie_chart import production_pipeline_pie_chart_altair
 from db import get_all_data, WarehouseData
+import numpy as np
+
+def real_time_update(warehouse_data: WarehouseData):
+    random_row = warehouse_data.dock_status.sample(n=1)
+    random_index = random_row.index[0]
+
+    current_random_row = warehouse_data.dock_status.iloc[random_index]
+    
+    if current_random_row['Days of Service'] - 1 == 7:
+        new_index = warehouse_data.alerts['alert_id'].max() + 1
+        warehouse_data = add_new_alert(new_index, 
+                                       current_random_row['sku_id'],
+                                       current_random_row['Product Number'],
+                                       current_random_row['Product Name'], 
+                                       'Urgent SKU', 
+                                       'Low days of service', 
+                                       warehouse_data)
+        
+    warehouse_data.dock_status.loc[random_index, 'Days of Service'] = current_random_row['Days of Service'] - 1 if current_random_row['Days of Service'] > 1 else 50
+    warehouse_data.dock_status.loc[random_index, 'Last Refresh'] = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    warehouse_data.dock_status['Dock Aging Hours'] = [int((datetime.now() - time_created).total_seconds() // 3600) for time_created in warehouse_data.dock_status['Time Created']]
+    return warehouse_data
 
 def main():
     """

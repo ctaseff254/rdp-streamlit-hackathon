@@ -1,5 +1,7 @@
 import sqlite3
+from datetime import datetime, timedelta
 import pandas as pd
+import random
 
 database_file = 'warehouse_data.db'
 
@@ -22,6 +24,12 @@ class WarehouseData:
         self.dock_status = dock_status
         self.skus_all = skus_all
         self.production_pipeline = production_pipeline
+
+def random_time(start, end):
+        """Generate a random datetime between `start` and `end`."""
+        delta = end - start
+        random_seconds = random.randint(0, int(delta.total_seconds()))
+        return start + timedelta(seconds=random_seconds)
 
 def connect_to_db():
     """
@@ -50,7 +58,9 @@ def get_all_data():
     """
     conn_ref, cursor = connect_to_db()
     
-    alerts_df = pd.read_sql_query("""SELECT 
+    alerts_df = pd.read_sql_query("""SELECT
+                                  a.alert_id,
+                                  s.sku_id, 
                                   s.product_number,
                                   s.product_name,
                                   a.alert_type,
@@ -61,10 +71,14 @@ def get_all_data():
     skus_df = pd.read_sql('SELECT * FROM skus WHERE sku_id IN (SELECT sku_id FROM alerts);', conn_ref)
     
     dock_status_df = pd.read_sql("""
-        SELECT 
+        SELECT
+            s.sku_id,
+            d.dock_id, 
             s.product_number, 
             s.product_name,
-            d.staging_lane, 
+            d.staging_lane,
+            p.status,
+            p.estimated_completion, 
             d.dock_location, 
             d.last_refresh, 
             d.days_of_service,
@@ -74,23 +88,32 @@ def get_all_data():
             s.weight_lbs 
         FROM dock_status AS d
         INNER JOIN skus AS s ON d.sku_id = s.sku_id
+        INNER JOIN production_pipeline as p on s.sku_id = p.sku_id
     """, conn_ref)
 
     dock_status_df['last_refresh'] = pd.to_datetime(dock_status_df['last_refresh'], format='%Y-%m-%d %H:%M:%S')
     dock_status_df['days_of_service'].astype(int)
 
+    # Define your time range and random time in that range
+    start_time = datetime.strptime("2025-08-01 03:00:00", "%Y-%m-%d %H:%M:%S")
+    end_time = datetime.strptime("2025-08-07 23:59:59", "%Y-%m-%d %H:%M:%S")
+    rand_time = random_time(start_time, end_time)
+    dock_status_df["Time Created"] = [random_time(start_time, end_time) for row in range(len(dock_status_df))]
+
     dock_status_df.rename(columns={
         'staging_lane': 'Staging Lane', 
         'dock_location': 'Dock Location', 
         'last_refresh': 'Last Refresh',
+        'status': 'Status',
+        'estimated_completion': 'Estimated Completion',
         'product_name': 'Product Name',
         'product_number': 'Product Number',
         'days_of_service': 'Days of Service',
-        'dock_aging_time': 'Dock Aging Time',
+        'dock_aging_hours': 'Dock Aging Hours',
         'destination': 'Destination',
         'remortgage_gallons': 'Remortgage Gallons',
         'pallets': 'Pallets',
-        'weight_lbs': 'Weight (lbs)'
+        'weight_lbs': 'Weight (lbs)',
     }, inplace=True)
 
     skus_all_df = pd.read_sql('SELECT * FROM skus;', conn_ref)

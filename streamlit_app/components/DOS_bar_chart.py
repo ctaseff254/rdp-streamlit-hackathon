@@ -11,8 +11,9 @@ def get_recs_with_eligible_DOS(df):
 def fetch_DOS_count(dock_status):
     chart = alt.Chart(get_recs_with_eligible_DOS(dock_status)).mark_bar(size=150).encode(
         x=alt.X('Days of Service', axis=alt.Axis(format='d')), # 'd' for integer format
-        y='count',
-        color=alt.Color('Days of Service', scale=alt.Scale(range=alert_severity_map.values()))
+        y=alt.Y('count', axis=alt.Axis(format='d')),
+        color=alt.Color('Days of Service', 
+                        scale=alt.Scale(range=list(alert_severity_map.values())[::-1]))
     )
 
     return chart
