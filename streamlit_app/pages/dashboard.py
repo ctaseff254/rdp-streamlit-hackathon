@@ -11,6 +11,7 @@ from pages.alerts import flag_hot_sku, alert_severity_map, add_new_alert # 2nd i
 from components.DOS_bar_chart import fetch_DOS_count
 from components.PP_pie_chart import production_pipeline_pie_chart_altair
 from db import get_all_data, WarehouseData
+import numpy as np
 
 def real_time_update(warehouse_data: WarehouseData):
     random_row = warehouse_data.dock_status.sample(n=1)
