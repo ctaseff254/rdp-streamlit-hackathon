@@ -135,6 +135,7 @@ def main():
         # Main dashboard with real-time updates and charts
         hidden = st.sidebar.checkbox("Hide graphs")
         while True:
+            data = real_time_update(data)
             with placeholder.container():
                 if not hidden:
                     # Top row: urgent items bar chart and production pipeline pie chart
@@ -147,14 +148,7 @@ def main():
                     with pie:
                         # Display production pipeline pie chart (Altair)
                         production_pipeline_pie_chart_altair(data)
-                # Simulate real-time update of Days of Service for a random SKU
-                random_row = data.dock_status.sample(n=1)
-                random_index = random_row.index[0]
-                current_days_of_service = data.dock_status.loc[random_index, 'Days of Service']
-                # Decrement Days of Service, reset to 99 if it reaches 1
-                data.dock_status.loc[random_index, 'Days of Service'] = current_days_of_service - 1 if current_days_of_service > 1 else 99
-                # Update last refresh timestamp for the SKU
-                data.dock_status.loc[random_index, 'Last Refresh'] = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+
                 # Apply conditional formatting to dock status
                 flagged_skus_df = data.dock_status.style.apply(flag_hot_sku, axis=1)
                 # Second row: alerts and filtered dock status table
