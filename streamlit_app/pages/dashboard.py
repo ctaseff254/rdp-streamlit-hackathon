@@ -9,8 +9,8 @@ import random
 import altair as alt
 from pages.alerts import flag_hot_sku, alert_severity_map, add_new_alert # 2nd import is temporary
 from components.DOS_bar_chart import fetch_DOS_count
+from components.PP_pie_chart import production_pipeline_pie_chart_altair
 from db import get_all_data, WarehouseData
-import numpy as np
 
 def real_time_update(warehouse_data: WarehouseData):
     random_row = warehouse_data.dock_status.sample(n=1)
@@ -51,16 +51,18 @@ def main():
         To stop the dashboard, interrupt the Streamlit app manually.
     """
     data = get_all_data()
+    st.sidebar.title("Home")
+    hidden = st.sidebar.checkbox("Hide graphs")
+    st.sidebar.button("SKUs")
+    st.sidebar.button("Lanes")
+    st.sidebar.button("Orders")
+    st.sidebar.button("Settings")
     st.set_page_config(
         page_title="Real-time Dock Status Dashboard",
         page_icon="📦",
         layout="wide",
     )
-    
-    # format image later if time
-    #st.image("streamlit_app\static\Sherwin-Williams-logo.png", use_container_width=True)
-    st.title("Dock Status Dashboard") 
-    
+
     filter_col1, filter_col2, filter_col3 = st.columns(3)
     with filter_col1:
         urgency_filter = st.selectbox('Select urgency', options=['All', 'Urgent', 'Not-Urgent'])
@@ -69,35 +71,46 @@ def main():
     with filter_col3:
         destination_filter = st.selectbox('Select destination',
                                 options=np.insert(data.dock_status['Destination'].unique(), 0, 'All')) 
-        
-    placeholder = st.empty()
     
+    st.title("Dock Status Dashboard")  
+    placeholder = st.empty()
+
     # Real-time data simulation loop
     while True:
         with placeholder.container():
-            col1, col2, col3 = st.columns(3)
-            # Randomize 'Days of Service' for a random SKU
+            if not hidden:
+                pie, bar = st.columns(2)
+                with bar:
+                    DOS_count_df = fetch_DOS_count(data.dock_status)
 
+                    # Display dashboard sections
+                    st.markdown('### Urgent Items')
+                    st.altair_chart(DOS_count_df)
+                with pie:
+                    production_pipeline_pie_chart_altair(data)
+
+            # Randomize 'Days of Service' for a random SKU
             # Apply conditional formatting
-            flagged_skus_df = data.dock_status.style.apply(flag_hot_sku, axis=1)   
+            flagged_skus_df = data.dock_status.style.apply(flag_hot_sku, axis=1) 
+            
             DOS_count_df =  fetch_DOS_count(data.dock_status)
 
             data = real_time_update(data)
-            
+           
+            col1, col2 = st.columns([1, 3])
+       
             # Display dashboard sections
-            st.markdown('### Urgent Items')
-            st.altair_chart(DOS_count_df) 
             with col1:
-                st.markdown('### Alerts')
+                st.markdown('### 🔔 Alerts')
                 st.dataframe(data.alerts)
             with col2:
-                st.markdown('### Dock Status')                
+                st.markdown('### 📤 SKU Status')                
                 # Apply conditional formatting
                 
                 filtered_df = data.dock_status
                 
                 if destination_filter != 'All':
-                    filtered_df = filtered_df[data.dock_status['Destination'] == destination_filter]
+                    filtered_df = filtered_df[filtered_df['Destination'] == destination_filter]
                 if dock_filter != 'All':
                     filtered_df = filtered_df[filtered_df['Dock Location'] == dock_filter]
                     
@@ -108,9 +121,6 @@ def main():
 
                 flagged_skus_df = filtered_df.style.apply(flag_hot_sku, axis=1)   
                 st.dataframe(flagged_skus_df)
-            with col3:
-                st.markdown('### Production Pipeline')
-                st.dataframe(data.production_pipeline)
 
             time.sleep(2)
 
